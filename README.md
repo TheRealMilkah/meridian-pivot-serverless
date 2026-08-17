@@ -4,7 +4,7 @@
 
 ## Overview
 
-This is a serverless webhook receiver built as the **Day 1–2 solo mini-prototype** for "The Meridian Pivot" simulation. 
+This is a serverless webhook receiver built as the **Day 1–2 solo mini-prototype** for "The Meridian Pivot" simulation.
 
 It accepts `POST` requests containing inventory stock updates (SKU + stock quantity) and validates the payload. This prototype directly supports the **Day 4 pivot**—when the client kills polling and forces a switch to webhooks, this receiver is ready to go.
 
@@ -43,3 +43,7 @@ curl -X POST https://meridian-pivot-serverless.vercel.app/api/webhook -H "Conten
 curl -X POST https://meridian-pivot-serverless.vercel.app/api/webhook \
   -H "Content-Type: application/json" \
   -d '{"sku":"SHIRT-001","stock":42}'
+curl -X POST https://meridian-pivot-serverless.vercel.app/api/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"sku":"SHIRT-001","stock":42}'
+  {"received":true,"sku":"SHIRT-001","stock":42,"timestamp":"2026-08-17T09:29:47.551Z"}
