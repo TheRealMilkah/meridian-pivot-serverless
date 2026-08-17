@@ -1,4 +1,4 @@
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -11,10 +11,10 @@ export default function handler(req, res) {
 
   console.log(`Received stock update: ${sku} = ${stock}`);
 
-  return res.status(200).json({ 
-    received: true, 
-    sku, 
+  return res.status(200).json({
+    received: true,
+    sku,
     stock,
     timestamp: new Date().toISOString()
   });
-}
+};
