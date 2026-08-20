@@ -1,3 +1,4 @@
+// api/webhook.js
 import { updateStock } from './_cache.js';
 
 export default function handler(req, res) {
