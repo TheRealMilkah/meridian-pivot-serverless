@@ -1,3 +1,4 @@
+// api/stock.js
 import { getStock, getAllStock } from './_cache.js';
 
 export default function handler(req, res) {
@@ -17,6 +18,7 @@ export default function handler(req, res) {
   const stock = getStock(sku);
 
   if (stock === undefined) {
+    console.log(`SKU not found: ${sku}`);
     return res.status(404).json({
       error: 'SKU not found',
       sku,
