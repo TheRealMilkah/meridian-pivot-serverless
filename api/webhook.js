@@ -1,4 +1,6 @@
-module.exports = function handler(req, res) {
+import { updateStock } from './_cache.js';
+
+export default function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -9,7 +11,9 @@ module.exports = function handler(req, res) {
     return res.status(400).json({ error: 'Missing sku or stock' });
   }
 
-  console.log(`Received stock update: ${sku} = ${stock}`);
+  // Store in the shared cache
+  updateStock(sku, stock);
+  console.log(`📦 Webhook received: ${sku} = ${stock}`);
 
   return res.status(200).json({
     received: true,
@@ -17,4 +21,4 @@ module.exports = function handler(req, res) {
     stock,
     timestamp: new Date().toISOString()
   });
-};
+}
