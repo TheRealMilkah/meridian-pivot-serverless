@@ -9,7 +9,7 @@ This is a serverless inventory sync service built for "The Meridian Pivot" simul
 The service:
 - **Receives** stock updates via webhook (`POST /api/webhook`)
 - **Polls** a warehouse API every 5 minutes (`/api/poll` via cron job)
-- **Caches** stock data in **Upstash Redis** (persistent storage across all functions)
+- **Caches** stock data in **Upstash Redis** (persistent across all function invocations)
 - **Exposes** a query endpoint to check stock (`GET /api/stock`)
 
 This architecture directly supports the **Day 4 pivot** – when the client kills polling and forces a switch to webhooks, the webhook receiver is already built and tested.
@@ -27,6 +27,15 @@ This architecture directly supports the **Day 4 pivot** – when the client kill
 ---
 
 ## Project Structure
+meridian-pivot-serverless/
+├── api/
+│ ├── _cache.js # Upstash Redis cache layer
+│ ├── poll.js # Polling function (cron job)
+│ ├── stock.js # Query endpoint
+│ └── webhook.js # Webhook receiver
+├── package.json # Project metadata (ES Modules)
+├── vercel.json # Cron job configuration
+└── README.md # This file
 
 ---
 
@@ -52,7 +61,7 @@ This architecture directly supports the **Day 4 pivot** – when the client kill
 ### 4. Cache Layer (`api/_cache.js`)
 - Uses **Upstash Redis** for persistent storage
 - Provides `getStock`, `setStock`, `updateStock`, `getAllStock`, `getCacheSize`
-- Data is shared across all serverless function invocations
+- Data is shared across all serverless function invocations (solves the container isolation problem)
 
 ---
 
@@ -60,9 +69,12 @@ This architecture directly supports the **Day 4 pivot** – when the client kill
 
 1. Clone this repository.
 2. Connect your GitHub repo to [Vercel](https://vercel.com).
-3. Vercel will auto-deploy on every push to `main`.
-4. The cron job will start running automatically every 5 minutes.
-5. Your endpoints will be live at:
+3. Add Upstash Redis environment variables:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+4. Vercel will auto-deploy on every push to `main`.
+5. The cron job will start running automatically every 5 minutes.
+6. Your endpoints will be live at:
    - `https://[your-project].vercel.app/api/webhook`
    - `https://[your-project].vercel.app/api/poll`
    - `https://[your-project].vercel.app/api/stock`
@@ -120,3 +132,17 @@ curl -L https://meridian-pivot-serverless-milkah.vercel.app/api/stock?sku=SHIRT-
   "stock": 99,
   "timestamp": "2026-08-20T..."
 }
+Validation Rules
+Scenario	Response
+Missing sku or stock	400 Bad Request: Missing sku or stock
+GET request to webhook endpoint	405 Method Not Allowed
+SKU not found in cache	404 Not Found: SKU not found
+Blocker Journal Summary
+Blocker	Resolution
+Vercel returned 404: NOT_FOUND	The function file was named webhook (no .js extension). Vercel requires .js to detect serverless functions.
+Windows curl returned -H' is not recognized	Windows Command Prompt doesn't support backslash \ line breaks. Rewrote as a single-line command.
+{"error":"Missing sku or stock"}	Windows CMD requires double quotes " and escaped inner quotes \" for JSON payloads.
+ES Module imports not working (export default)	Added "type": "module" to package.json to enable ES Module syntax.
+Vercel not detecting functions	Realized functions must be in the /api folder with .js extension.
+In-memory cache not shared across containers	Switched to Upstash Redis for persistent storage across all functions.
+Live URL: https://meridian-pivot-serverless-milkah.vercel.app
