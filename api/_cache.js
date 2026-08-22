@@ -4,25 +4,42 @@ import { Redis } from '@upstash/redis';
 const redis = Redis.fromEnv();
 
 export async function getStock(sku) {
-  try {
-    const value = await redis.get(`stock:${sku}`);
-    return value !== null ? Number(value) : undefined;
-  } catch (error) {
-    console.error(`Error getting stock for ${sku}:`, error);
-    return undefined;
-  }
+  const value = await redis.get(`stock:${sku}`);
+  return value !== null ? Number(value) : undefined;
 }
 
 export async function setStock(sku, stock) {
+  await redis.set(`stock:${sku}`, String(stock));
+}
+
+export async function getAllStock() {
   try {
-    await redis.set(`stock:${sku}`, stock);
+    const allKeys = await redis.keys('stock:*');
+    if (!allKeys || allKeys.length === 0) return {};
+    
+    const values = await redis.mget(allKeys);
+    const stockData = {};
+    allKeys.forEach((key, index) => {
+      const sku = key.replace('stock:', '');
+      stockData[sku] = Number(values[index]);
+    });
+    return stockData;
   } catch (error) {
-    console.error(`Error setting stock for ${sku}:`, error);
+    console.error('Error getting all stock:', error);
+    return {};
   }
 }
 
 export async function updateStock(sku, stock) {
-  return setStock(sku, stock);
+  await redis.set(`stock:${sku}`, String(stock));
+  console.log(`Cache updated: ${sku} = ${stock}`);
 }
 
-// ... keep your existing getAllStock and getCacheSize below ...
+export async function getCacheSize() {
+  try {
+    const keys = await redis.keys('stock:*');
+    return keys ? keys.length : 0;
+  } catch (error) {
+    return 0;
+  }
+}
