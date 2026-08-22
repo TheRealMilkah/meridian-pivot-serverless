@@ -3,35 +3,28 @@ import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
 
-export async function getStock(sku) {
-  const value = await redis.get(`stock:${sku}`);
-  return value !== null ? Number(value) : undefined;
-}
-
-export async function setStock(sku, stock) {
-  await redis.set(`stock:${sku}`, String(stock));
-}
+// ... (keep your existing getStock, setStock, updateStock functions as they are) ...
 
 export async function getAllStock() {
   try {
-    // Use keys() instead of scan (simpler for small datasets)
-    const allKeys = await redis.keys('stock:*');
-    
-    if (!allKeys || allKeys.length === 0) {
-      console.log('No keys found with pattern stock:*');
-      return {};
-    }
-    
-    console.log(`Found ${allKeys.length} keys:`, allKeys);
-    
-    const values = await redis.mget(allKeys);
     const stockData = {};
-    
-    allKeys.forEach((key, index) => {
-      const sku = key.replace('stock:', '');
-      stockData[sku] = Number(values[index]);
-    });
-    
+    let cursor = 0;
+
+    do {
+      // Scan for keys with the "stock:" prefix
+      const [nextCursor, keys] = await redis.scan(cursor, { match: 'stock:*', count: 100 });
+      cursor = nextCursor;
+
+      if (keys.length > 0) {
+        // Use mget to fetch all values in one go
+        const values = await redis.mget(keys);
+        keys.forEach((key, index) => {
+          const sku = key.replace('stock:', '');
+          stockData[sku] = Number(values[index]);
+        });
+      }
+    } while (cursor !== 0); // Continue until the scan is complete
+
     return stockData;
   } catch (error) {
     console.error('Error getting all stock:', error);
@@ -39,15 +32,16 @@ export async function getAllStock() {
   }
 }
 
-export async function updateStock(sku, stock) {
-  await redis.set(`stock:${sku}`, String(stock));
-  console.log(`Cache updated: ${sku} = ${stock}`);
-}
-
 export async function getCacheSize() {
   try {
-    const keys = await redis.keys('stock:*');
-    return keys ? keys.length : 0;
+    let count = 0;
+    let cursor = 0;
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, { match: 'stock:*', count: 1000 });
+      cursor = nextCursor;
+      count += keys.length;
+    } while (cursor !== 0);
+    return count;
   } catch (error) {
     console.error('Error getting cache size:', error);
     return 0;
