@@ -3,30 +3,52 @@ import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
 
-// ... (keep getStock, setStock, updateStock, getCacheSize as they are) ...
+export async function getStock(sku) {
+  const value = await redis.get(`stock:${sku}`);
+  return value !== null ? Number(value) : undefined;
+}
+
+export async function setStock(sku, stock) {
+  await redis.set(`stock:${sku}`, String(stock));
+}
 
 export async function getAllStock() {
-  const stockData = {};
-  let cursor = 0;
-
-  do {
-    // Scan for keys with the "stock:" prefix
-    const response = await redis.scan(cursor, {
-      match: 'stock:*',
-      count: 100 // Adjust count as needed
-    });
-    cursor = response[0];
-    const keys = response[1];
-
-    if (keys.length > 0) {
-      // Use mget to fetch all values in one go
-      const values = await redis.mget(keys);
-      keys.forEach((key, index) => {
-        const sku = key.replace('stock:', '');
-        stockData[sku] = Number(values[index]);
-      });
+  try {
+    // Use scan instead of keys for better reliability
+    const keys = await redis.scan(0, { match: 'stock:*', count: 100 });
+    const allKeys = keys[1];
+    
+    if (!allKeys || allKeys.length === 0) {
+      return {};
     }
-  } while (cursor !== 0);
+    
+    const values = await redis.mget(allKeys);
+    const stockData = {};
+    
+    allKeys.forEach((key, index) => {
+      const sku = key.replace('stock:', '');
+      stockData[sku] = Number(values[index]);
+    });
+    
+    return stockData;
+  } catch (error) {
+    console.error('Error getting all stock:', error);
+    return {};
+  }
+}
 
-  return stockData;
+export async function updateStock(sku, stock) {
+  await redis.set(`stock:${sku}`, String(stock));
+  console.log(`Cache updated: ${sku} = ${stock}`);
+}
+
+export async function getCacheSize() {
+  try {
+    const keys = await redis.scan(0, { match: 'stock:*', count: 1000 });
+    const allKeys = keys[1];
+    return allKeys ? allKeys.length : 0;
+  } catch (error) {
+    console.error('Error getting cache size:', error);
+    return 0;
+  }
 }
