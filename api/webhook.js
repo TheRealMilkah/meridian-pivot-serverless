@@ -1,7 +1,7 @@
 // api/webhook.js
 import { updateStock } from './_cache.js';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -12,8 +12,7 @@ export default function handler(req, res) {
     return res.status(400).json({ error: 'Missing sku or stock' });
   }
 
-  // Store in the shared cache
-  updateStock(sku, stock);
+  await updateStock(sku, stock);
   console.log(`📦 Webhook received: ${sku} = ${stock}`);
 
   return res.status(200).json({
