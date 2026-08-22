@@ -2,5 +2,8 @@
   "name": "meridian-pivot-serverless",
   "version": "1.0.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@upstash/redis": "^1.31.0"
+  }
 }
