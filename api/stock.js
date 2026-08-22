@@ -1,12 +1,11 @@
 // api/stock.js
 import { getStock, getAllStock } from './_cache.js';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const { sku } = req.query;
 
-  // If no SKU provided, return all stock
   if (!sku) {
-    const allStock = getAllStock();
+    const allStock = await getAllStock();
     return res.status(200).json({
       total: Object.keys(allStock).length,
       stock: allStock,
@@ -14,8 +13,7 @@ export default function handler(req, res) {
     });
   }
 
-  // Check if SKU exists in cache
-  const stock = getStock(sku);
+  const stock = await getStock(sku);
 
   if (stock === undefined) {
     console.log(`SKU not found: ${sku}`);
