@@ -1,7 +1,8 @@
 {
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs@18.x"
+  "crons": [
+    {
+      "path": "/api/poll",
+      "schedule": "*/5 * * * *"
     }
-  }
+  ]
 }
