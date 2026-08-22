@@ -155,3 +155,5 @@ Status: ✅ Deployed and tested successfully on 2026-08-22.
 | Deployment Protection blocking `curl` requests | Disabled Vercel Authentication in project settings to allow public access. |
 | Upstash Redis not connecting | Added `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` environment variables in Vercel. |
 
+Live Prototype
+🔗 https://vercel.com/milkah/meridian-pivot-serverless
