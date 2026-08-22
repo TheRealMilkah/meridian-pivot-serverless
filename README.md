@@ -25,6 +25,7 @@ This architecture directly supports the **Day 4 pivot** – when the client kill
 - **Cache:** [Upstash Redis](https://upstash.com) (persistent key-value store)
 
 ---
+## Project Structure
 meridian-pivot-serverless/
 ├── api/
 │ ├── _cache.js # Upstash Redis cache layer
@@ -130,21 +131,27 @@ curl -L https://meridian-pivot-serverless-milkah.vercel.app/api/stock?sku=SHIRT-
   "stock": 99,
   "timestamp": "2026-08-20T..."
 }
-Validation Rules
-Scenario	Response
-Missing sku or stock	400 Bad Request: Missing sku or stock
-GET request to webhook endpoint	405 Method Not Allowed
-SKU not found in cache	404 Not Found: SKU not found
-Blocker Journal Summary
-Blocker	Resolution
-Vercel returned 404: NOT_FOUND	The function file was named webhook (no .js extension). Vercel requires .js to detect serverless functions.
-Windows curl returned -H' is not recognized	Windows Command Prompt doesn't support backslash \ line breaks. Rewrote as a single-line command.
-{"error":"Missing sku or stock"}	Windows CMD requires double quotes " and escaped inner quotes \" for JSON payloads.
-ES Module imports not working (export default)	Added "type": "module" to package.json to enable ES Module syntax.
-Vercel not detecting functions	Realized functions must be in the /api folder with .js extension.
-In-memory cache not shared across containers	Switched to Upstash Redis for persistent storage across all functions.
-Live URL: https://meridian-pivot-serverless-milkah.vercel.app
+## Validation Rules
+
+| Scenario | Response |
+| :--- | :--- |
+| Missing `sku` or `stock` | `400 Bad Request: Missing sku or stock` |
+|GET request to webhook endpoint|405 Method Not Allowed|
+|SKU not found in cache	|404 Not Found: SKU not found|
 
 Status: ✅ Deployed and tested successfully on 2026-08-22.
 
 ## Project Structure
+## Blocker Journal Summary
+
+| Blocker | Resolution |
+| :--- | :--- |
+| Vercel returned `404: NOT_FOUND` | The function file was named `webhook` (no `.js` extension). Vercel requires `.js` to detect serverless functions. Renamed to `webhook.js`. |
+| Windows `curl` returned `-H' is not recognized` | Windows Command Prompt doesn't support backslash `\` line breaks. Rewrote as a single-line command. |
+| `{"error":"Missing sku or stock"}` | Windows CMD requires double quotes `"` and escaped inner quotes `\"` for JSON payloads. Fixed command syntax. |
+| ES Module imports not working (`export default`) | Added `"type": "module"` to `package.json` to enable ES Module syntax. |
+| Vercel not detecting functions | Realized functions must be in the `/api` folder with `.js` extension. Corrected file structure. |
+| In-memory cache not shared across containers | Switched to **Upstash Redis** for persistent storage across all function invocations. |
+| Deployment Protection blocking `curl` requests | Disabled Vercel Authentication in project settings to allow public access. |
+| Upstash Redis not connecting | Added `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` environment variables in Vercel. |
+
