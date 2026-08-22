@@ -78,6 +78,7 @@ meridian-pivot-serverless/
    - `https://[your-project].vercel.app/api/poll`
    - `https://[your-project].vercel.app/api/stock`
 
+**Live URL:** `https://meridian-pivot-serverless-milkah.vercel.app`
 ---
 
 ## Testing the Endpoints
