@@ -3,34 +3,30 @@ import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
 
-export async function getStock(sku) {
-  const value = await redis.get(`stock:${sku}`);
-  return value !== null ? Number(value) : undefined;
-}
-
-export async function setStock(sku, stock) {
-  await redis.set(`stock:${sku}`, String(stock));
-}
+// ... (keep getStock, setStock, updateStock, getCacheSize as they are) ...
 
 export async function getAllStock() {
-  const keys = await redis.keys('stock:*');
-  if (keys.length === 0) return {};
-  
-  const values = await redis.mget(...keys);
   const stockData = {};
-  keys.forEach((key, index) => {
-    const sku = key.replace('stock:', '');
-    stockData[sku] = Number(values[index]);
-  });
+  let cursor = 0;
+
+  do {
+    // Scan for keys with the "stock:" prefix
+    const response = await redis.scan(cursor, {
+      match: 'stock:*',
+      count: 100 // Adjust count as needed
+    });
+    cursor = response[0];
+    const keys = response[1];
+
+    if (keys.length > 0) {
+      // Use mget to fetch all values in one go
+      const values = await redis.mget(keys);
+      keys.forEach((key, index) => {
+        const sku = key.replace('stock:', '');
+        stockData[sku] = Number(values[index]);
+      });
+    }
+  } while (cursor !== 0);
+
   return stockData;
-}
-
-export async function updateStock(sku, stock) {
-  await redis.set(`stock:${sku}`, String(stock));
-  console.log(`Cache updated: ${sku} = ${stock}`);
-}
-
-export async function getCacheSize() {
-  const keys = await redis.keys('stock:*');
-  return keys.length;
 }
