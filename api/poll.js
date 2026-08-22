@@ -10,7 +10,7 @@ function generateMockStock() {
   return stockData;
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   try {
     if (req.method !== 'POST' && req.method !== 'GET') {
       return res.status(405).json({ error: 'Method not allowed' });
@@ -22,11 +22,11 @@ export default function handler(req, res) {
     
     let updatedCount = 0;
     for (const [sku, stock] of Object.entries(stockData)) {
-      updateStock(sku, stock);
+      await updateStock(sku, stock);
       updatedCount++;
     }
 
-    const cacheSize = getCacheSize();
+    const cacheSize = await getCacheSize();
     console.log(`✅ Poll complete: Updated ${updatedCount} SKUs. Cache size: ${cacheSize}`);
 
     return res.status(200).json({
