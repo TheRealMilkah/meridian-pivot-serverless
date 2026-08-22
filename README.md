@@ -25,8 +25,6 @@ This architecture directly supports the **Day 4 pivot** – when the client kill
 - **Cache:** [Upstash Redis](https://upstash.com) (persistent key-value store)
 
 ---
-
-## Project Structure
 meridian-pivot-serverless/
 ├── api/
 │ ├── _cache.js # Upstash Redis cache layer
@@ -146,3 +144,7 @@ ES Module imports not working (export default)	Added "type": "module" to package
 Vercel not detecting functions	Realized functions must be in the /api folder with .js extension.
 In-memory cache not shared across containers	Switched to Upstash Redis for persistent storage across all functions.
 Live URL: https://meridian-pivot-serverless-milkah.vercel.app
+
+Status: ✅ Deployed and tested successfully on 2026-08-22.
+
+## Project Structure
